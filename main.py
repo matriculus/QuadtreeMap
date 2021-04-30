@@ -78,19 +78,15 @@ class QuadTreeNode:
         p1 = P1[0] + width/2, P1[1]
         p2 = P2[0], P1[1] + height/2
         self.addChild(QuadTreeNode(Rectangle(p1, p2)))
+    
+    def add_until_level(self, maxLevel):
+        if maxLevel <= self.get_level() : return
+        self.add_level()
+        for child in self.children: child.add_until_level(maxLevel)
 
 boundbox = Rectangle((0,0), (WIDTH, HEIGHT))
-levels = 4
+levels = 3
 root = QuadTreeNode(boundbox)
-root.add_level()
-for child1 in root.children:
-    child1.add_level()
-    for child2 in child1.children:
-        child2.add_level()
-        for child3 in child2.children:
-            child3.add_level()
-            for child4 in child3.children:
-                child4.add_level()
-
+root.add_until_level(levels)
 
 root.print_tree()
