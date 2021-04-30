@@ -1,89 +1,96 @@
-import numpy as np
-import tkinter as tk
+# import libraries
+from matplotlib import pyplot as plt
 
-width = 640
-height = 640
-level = 6
+k = 4
+WIDTH = 640
+HEIGHT = WIDTH
 
 class Point:
     def __init__(self, x, y):
-        self.x, self.y = x, y
+        self.x = x
+        self.y = y
 
 class Rectangle:
     def __init__(self, p1, p2):
         self.p1 = p1
         self.p2 = p2
+        self.w = self.p2[0] - self.p1[0]
+        self.h = self.p2[1] - self.p1[1]
+        self.x = [self.p1[0], self.p2[0]]
+        self.y = [self.p1[1], self.p2[1]]
     
     def __str__(self):
+        # self.plot()
         return f"P1: {self.p1}\tP2: {self.p2}"
-
-class Node:
-    def __init__(self, boundary, level):
-        self.nw = None
-        self.sw = None
-        self.se = None
-        self.ne = None
-        self.boundary = boundary
-        self.level = level
     
-    def __str__(self):
-        return f"\nLevel: {self.level}\tBoundary: {self.boundary}\nNW: {self.nw}\nNE: {self.ne}\nSW: {self.sw}\nSE: {self.se}\n"
+    def plot(self):
+        plt.plot(self.x, self.y)
 
-class Tree:
-    level = 0
+class QuadTreeNode:
     def __init__(self, boundary):
-        self.primaryNode = self.createNode(boundary, self.level)
-        for i in range(level):
-            self.primaryNode = self.createNextLevel(self.primaryNode)
-
-    def createNode(self, boundary, level):
-        return Node(boundary, level)
+        self.boundary = boundary
+        self.children = []
+        self.parent = None
     
-    def createNextLevel(self, node):
-        self.level += 1
-        P1 = node.boundary.p1
-        P2 = node.boundary.p2
-        width = P2[0] - P1[0]
-        height = P2[1] - P1[1]
+    def addChild(self, child):
+        if len(self.children) < k:
+            child.parent = self
+            self.children.append(child)
+        else:
+            print(f"No. of children exceeding {k}!")
+    
+    def get_level(self):
+        level = 0
+        p = self.parent
+        while p:
+            level += 1
+            p = p.parent
+        return level
+    
+    def print_tree(self):
+        prefix = f"{self.get_level()} "
+        spacer = ' ' * self.get_level()*3 + "|__" if self.parent else ""
+        statement = prefix + spacer + f"{self.boundary}"
+        print(statement)
+        if self.children:
+            for child in self.children:
+                child.print_tree()
+        plt.show()
+    
+    def add_level(self):
+        P1 = self.boundary.p1
+        P2 = self.boundary.p2
+        width = self.boundary.w
+        height = self.boundary.h
         # nw point
         p1 = P1
-        p2 = width/2, height/2
-        node.nw = self.createNode(Rectangle(p1,p2), self.level)
+        p2 = P1[0] + width/2, P1[1] + height/2
+        self.addChild(QuadTreeNode(Rectangle(p1, p2)))
         # sw point
-        p1 = P1[0], height/2
-        p2 = width/2, height
-        node.sw = self.createNode(Rectangle(p1, p2), self.level)
+        p1 = P1[0], P1[1] + height/2
+        p2 = P1[0] + width/2, P1[1] + height
+        self.addChild(QuadTreeNode(Rectangle(p1, p2)))
         # se point
-        p1 = node.nw.boundary.p2
+        p1 = P1[0] + width/2, P1[1] + height/2
         p2 = P2
-        node.se = self.createNode(Rectangle(p1, p2), self.level)
+        self.addChild(QuadTreeNode(Rectangle(p1, p2)))
         # ne point
-        p1 = width/2, P1[1]
-        p2 = P2[0], height/2
-        node.ne = self.createNode(Rectangle(p1, p2), self.level)
-        return node
+        p1 = P1[0] + width/2, P1[1]
+        p2 = P2[0], P1[1] + height/2
+        self.addChild(QuadTreeNode(Rectangle(p1, p2)))
 
-class Grid(tk.Tk):
-    width = width
-    height = height
-    geo = str(width) + "x" + str(height)
-    def __init__(self):
-        tk.Tk.__init__(self)
-        self.createWindow()
-    
-    def createWindow(self):
-        self.title("Occupancy Grid")
-        self.geometry(self.geo)
-    
-    def loop(self):
-        self.mainloop()
+boundbox = Rectangle((0,0), (WIDTH, HEIGHT))
+levels = 4
+root = QuadTreeNode(boundbox)
+root.add_level()
+for child1 in root.children:
+    child1.add_level()
+    for child2 in child1.children:
+        child2.add_level()
+        for child3 in child2.children:
+            child3.add_level()
+            for child4 in child3.children:
+                child4.add_level()
 
 
-grid = Grid()
-grid.loop()
-
-boundary = Rectangle((0,0), (width, height))
-tree = Tree(boundary)
-
-
-print(tree.primaryNode)
+root.print_tree()
