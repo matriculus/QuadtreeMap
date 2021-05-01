@@ -1,4 +1,3 @@
-import tkinter as tk
 import pygame
 
 WHITE = (255, 255, 255)
@@ -110,45 +109,7 @@ class QuadTree:
     def print_tree(self):
         self.root.print_tree()
 
-class Tree(tk.Tk):
-    pad = (100, 100)
-    center = pad[0]/2, pad[1]/2
-    r = 2
-    def __init__(self, width, height):
-        tk.Tk.__init__(self)
-        # self.quadtree = quadtree
-        self.cw, self.ch = width + self.pad[0], height + self.pad[1]
-        self.createWindow()
-    
-    def createWindow(self):
-        self.title("QuadTree Map")
-        geo = f"{self.cw}x{self.ch}"
-        self.geometry(geo)
-        self.canvas = tk.Canvas(self, width = self.cw, height = self.ch, bg='#ffffff')
-        self.canvas.pack()
-        # self.draw(self.quadtree)
-    
-    def loop(self):
-        self.mainloop()
-
-    def draw(self, quadtree):
-        w = quadtree.boundary.w
-        h = quadtree.boundary.h
-        x1 = quadtree.boundary.x + self.center[0]
-        y1 = quadtree.boundary.y + self.center[1]
-        x2 = x1 + w
-        y2 = y1 + h
-        self.canvas.create_rectangle(x1, y1, x2, y2)
-        if quadtree.children:
-            for child in quadtree.children:
-                self.draw(child)
-        
-    def draw_point(self, point):
-        x = self.center[0] + point.x
-        y = self.center[1] + point.y
-        self.canvas.create_oval(x - self.r, y - self.r, x + self.r, y + self.r, fill="black")
-
-class TreeViz:
+class Tree:
     pad = 100, 100
     center = pad[0]/2, pad[1]/2
     points = []

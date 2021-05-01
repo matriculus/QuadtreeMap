@@ -11,8 +11,7 @@ Point = quadtreemap.Point
 
 boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
-# app = quadtreemap.Tree(WIDTH, HEIGHT)
-tapp = quadtreemap.TreeViz(WIDTH, HEIGHT)
+tapp = quadtreemap.Tree(WIDTH, HEIGHT)
 done = False
 while not done:
     deg = random.randrange(360)
@@ -27,8 +26,3 @@ while not done:
     done = tapp.eventCheck()
 
 map.print_tree()
-
-# app.draw(map.root)
-# for p in points:
-#     app.draw_point(p)
-# app.loop()
