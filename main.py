@@ -14,17 +14,21 @@ boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
 tapp = quadtreemap.Tree(WIDTH, HEIGHT)
 
-def generateData():
-    deg = np.random.uniform(0, 360, 300)
+def generateCircle(n=300):
+    deg = np.random.uniform(0, 360, n)
     ang = deg * np.pi / 180
-
-    x = WIDTH/2 + 200*np.cos(ang)
-    y = HEIGHT/2 + 200*np.sin(ang)
+    r = np.random.uniform(100, 200)
+    x = WIDTH/2 + r*np.cos(ang)
+    y = HEIGHT/2 + r*np.sin(ang)
     xy = np.vstack([x, y]).transpose()
-
     return quadtreemap.PointCloud(xy)
 
-pcData = generateData()
+def generateQuarter(n=300):
+    xy = np.random.uniform(0,WIDTH/2, (n,2))
+    return quadtreemap.PointCloud(xy)
+
+# pcData = generateData(n=1000)
+pcData = generateQuarter(n=1000)
 map.insert(pcData)
 
 done = False

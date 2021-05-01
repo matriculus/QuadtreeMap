@@ -43,6 +43,7 @@ class QuadTreeNode:
         self.occupancy = False
     
     def addChild(self, child):
+        assert len(self.children) < 4
         if len(self.children) < 4:
             child.parent = self
             self.children.append(child)
@@ -98,15 +99,29 @@ class QuadTreeNode:
             for child in self.children:
                 child.insert(point, maxLevel)
         else:
-            self.add_level()
-            for child in self.children:
-                child.insert(point, maxLevel)
-            # self.children = [child for child in self.children if child.isOccupied()]  
+            if not self.occupancy:
+                self.add_level()
+                for child in self.children:
+                    child.insert(point, maxLevel)
+                # self.children = [child for child in self.children if child.isOccupied()]  
+        self.mergeOccupiedNodes()
     
     def insertPCData(self, pcData, maxLevel):
         if pcData:
             for point in pcData.getPoints():
                 self.insert(point, maxLevel)
+            self.mergeOccupiedNodes()
+    
+    def mergeOccupiedNodes(self):
+        occupancy = []
+        if len(self.children) == 0:
+            return
+        for child in self.children:
+            child.mergeOccupiedNodes()
+            occupancy.append(child.occupancy)
+        if len(occupancy) == 4 and all(occupancy):
+            self.children = []
+            self.occupancy = True
 
 
         
