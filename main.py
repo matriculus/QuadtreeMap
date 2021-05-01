@@ -4,7 +4,7 @@ import quadtreemap
 
 WIDTH = 640
 HEIGHT = WIDTH
-maxlevel = 4
+maxlevel = 10
 
 Point = quadtreemap.Point
 
@@ -12,7 +12,7 @@ boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
 
 points = []
-for _ in range(50):
+for _ in range(500):
     x = random.randrange(WIDTH)
     y = random.randrange(HEIGHT)
     points.append(Point(x, y))

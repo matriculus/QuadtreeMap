@@ -89,7 +89,7 @@ class QuadTreeNode:
             self.add_level()
             for child in self.children:
                 child.insert(point, maxLevel)
-            
+            # self.children = [child for child in self.children if child.isOccupied()]            
         
 class QuadTree:
     def __init__(self, boundary, maxlevel):
