@@ -1,4 +1,11 @@
 import tkinter as tk
+import pygame
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
 
 class Point:
     def __init__(self, x, y):
@@ -140,3 +147,58 @@ class Tree(tk.Tk):
         x = self.center[0] + point.x
         y = self.center[1] + point.y
         self.canvas.create_oval(x - self.r, y - self.r, x + self.r, y + self.r, fill="black")
+
+class TreeViz:
+    pad = 100, 100
+    center = pad[0]/2, pad[1]/2
+    points = []
+    def __init__(self, width, height):
+        self._init__pygame()
+        self.screen = pygame.display.set_mode((width + self.pad[0], height + self.pad[1]))
+        self.clock = pygame.time.Clock()
+    
+    def _init__pygame(self):
+        pygame.init()
+        pygame.display.set_caption("QuadTree Map Visualisation")
+    
+    def draw(self, quadtree):
+        self.clearScreen()
+        self.drawTree(quadtree)
+
+    def drawTree(self, quadtree):
+        w = quadtree.boundary.w
+        h = quadtree.boundary.h
+        x1 = quadtree.boundary.x + self.center[0]
+        y1 = quadtree.boundary.y + self.center[1]
+        if quadtree.occupancy:
+            pygame.draw.rect(self.screen, GREEN, (x1, y1, w, h))
+        pygame.draw.rect(self.screen, BLACK, (x1, y1, w, h), 1)
+        if quadtree.children:
+            for child in quadtree.children:
+                self.drawTree(child)
+    
+    def draw_point(self, point, memory):
+        if memory:
+            self.points.append(point)
+        else:
+            self.points = []    
+        for point in self.points:
+            x = self.center[0] + point.x
+            y = self.center[1] + point.y
+            pygame.draw.circle(self.screen, RED, (x, y), 2)
+
+    def clearScreen(self):
+        self.screen.fill(WHITE)
+    
+    def update(self):
+        pygame.display.flip()
+        self.clock.tick(60)
+    
+    def quit(self):
+        pygame.quit()
+    
+    def eventCheck(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+                return True

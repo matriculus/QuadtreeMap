@@ -1,26 +1,34 @@
 # import libraries
 import random
 import quadtreemap
+import math
 
 WIDTH = 640
 HEIGHT = WIDTH
-maxlevel = 10
+maxlevel = 5
 
 Point = quadtreemap.Point
 
 boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
-app = quadtreemap.Tree(WIDTH, HEIGHT)
-points = []
-for _ in range(500):
-    x = random.randrange(WIDTH)
-    y = random.randrange(HEIGHT)
-    points.append(Point(x, y))
-    map.insert(Point(x, y))
+# app = quadtreemap.Tree(WIDTH, HEIGHT)
+tapp = quadtreemap.TreeViz(WIDTH, HEIGHT)
+done = False
+while not done:
+    deg = random.randrange(360)
+    ang = (math.pi * deg)/180
+    x = WIDTH/2 + 200*math.cos(ang)
+    y = HEIGHT/2 + 200*math.sin(ang)
+    p = Point(x, y)
+    map.insert(p)
+    tapp.draw(map.root)
+    tapp.draw_point(p, False)
+    tapp.update()
+    done = tapp.eventCheck()
 
 map.print_tree()
 
-app.draw(map.root)
-for p in points:
-    app.draw_point(p)
-app.loop()
+# app.draw(map.root)
+# for p in points:
+#     app.draw_point(p)
+# app.loop()
