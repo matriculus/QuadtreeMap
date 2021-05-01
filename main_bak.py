@@ -1,89 +1,116 @@
-import numpy as np
-import tkinter as tk
+# import libraries
 
-width = 640
-height = 640
-level = 6
+k = 4
+WIDTH = 640
+HEIGHT = WIDTH
+maxLevel = 4
 
 class Point:
     def __init__(self, x, y):
-        self.x, self.y = x, y
+        self.x = x
+        self.y = y
 
 class Rectangle:
-    def __init__(self, p1, p2):
-        self.p1 = p1
-        self.p2 = p2
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
     
     def __str__(self):
-        return f"P1: {self.p1}\tP2: {self.p2}"
-
-class Node:
-    AdjacentNodes = [None, None, None, None]
-    def __init__(self, boundary, level):
-        self.boundary = boundary
-        self.level = level
+        p1 = (self.x, self.y)
+        p2 = (self.x + self.w, self.y + self.h)
+        return f"|P1: {p1}|\t|P2: {p2}|"
     
-    def __str__(self):
-        return f"\nLevel: {self.level}\tBoundary: {self.boundary}\n"
-    
-    def addchildren(self, node, n):
-        self.AdjacentNodes[n] = node
+    def contains(self, point):
+        if point.x > self.x and point.y > self.y:
+            if point.x < self.x + self.w and point.y < self.y + self.h:
+                return True
+        return False
 
-class Tree:
-    level = 0
+class QuadTreeNode:
     def __init__(self, boundary):
-        self.Node = self.createNode(boundary, self.level)
-        # for i in range(level):
-        # self.Node = self.addchildren(self.Node)
-
-    def createNode(self, boundary, level):
-        return Node(boundary, level)
+        self.boundary = boundary
+        self.children = []
+        self.parent = None
+        self.occupancy = False
     
-    def addchildren(self, node):
-        self.level += 1
-        P1 = node.boundary.p1
-        P2 = node.boundary.p2
-        width = P2[0] - P1[0]
-        height = P2[1] - P1[1]
+    def addChild(self, child):
+        if len(self.children) < k:
+            child.parent = self
+            self.children.append(child)
+        else:
+            print(f"No. of children exceeding {k}!")
+    
+    def get_level(self):
+        level = 0
+        p = self.parent
+        while p:
+            level += 1
+            p = p.parent
+        return level
+    
+    def print_tree(self):
+        prefix = f"{self.get_level()} "
+        spacer = ' ' * self.get_level()*3 + "|____" if self.parent else ""
+        statement = prefix + spacer + f"{self.boundary}" + f"\tOccupied: {self.occupancy}" + f"\t# children: {len(self.children)}"
+        print(statement)
+        if self.children:
+            for child in self.children:
+                child.print_tree()
+    
+    def add_level(self):
+        x = self.boundary.x
+        y = self.boundary.y
+        w = self.boundary.w
+        h = self.boundary.h
         # nw point
-        p1 = P1
-        p2 = width/2, height/2
-        node.addchildren(self.createNode(Rectangle(p1,p2), self.level), 0)
+        self.addChild(QuadTreeNode(Rectangle(x, y, w/2, h/2)))
         # sw point
-        p1 = P1[0], height/2
-        p2 = width/2, height
-        node.addchildren(self.createNode(Rectangle(p1,p2), self.level), 1)
+        self.addChild(QuadTreeNode(Rectangle(x, y + h/2, w/2, h/2)))
         # se point
-        p1 = width/2, height/2
-        p2 = P2
-        node.addchildren(self.createNode(Rectangle(p1,p2), self.level), 2)
+        self.addChild(QuadTreeNode(Rectangle(x + w/2, y + h/2, w/2, h/2)))
         # ne point
-        p1 = width/2, P1[1]
-        p2 = P2[0], height/2
-        node.addchildren(self.createNode(Rectangle(p1,p2), self.level), 3)
-        return node
-
-class Grid(tk.Tk):
-    width = width
-    height = height
-    geo = str(width) + "x" + str(height)
-    def __init__(self):
-        tk.Tk.__init__(self)
-        self.createWindow()
+        self.addChild(QuadTreeNode(Rectangle(x + w/2, y, w/2, h/2)))
     
-    def createWindow(self):
-        self.title("Occupancy Grid")
-        self.geometry(self.geo)
+    def add_until_level(self, maxlevel):
+        if maxlevel <= self.get_level() : return
+        self.add_level()
+        for child in self.children: child.add_until_level(maxlevel)
     
-    def loop(self):
-        self.mainloop()
+    def insert(self, point):
+        if maxLevel <= self.get_level():
+            if self.boundary.contains(point):
+                self.occupancy = True
+            return
+        
+        if self.boundary.contains(point):
+            # self.occupancy = True
+            if len(self.children) > 0:
+                print("has children")
+                for child in self.children:
+                    child.insert(point)
+            print("do not have children")
+            self.add_level()
+            for child in self.children:
+                child.insert(point)
+            # self.children = [child for child in self.children if child.occupancy]  
+            # print(self.isOccupied())
+        return
+    
+    def isOccupied(self):
+        if len(self.children) == 0:
+            return self.occupancy
+        
+        for child in self.children:
+            child.isOccupied()
+        
 
 
-grid = Grid()
-grid.loop()
 
-boundary = Rectangle((0,0), (width, height))
-tree = Tree(boundary)
-
-
-print(tree.primaryNode.AdjacentNodes)
+boundbox = Rectangle(0, 0, WIDTH, HEIGHT)
+root = QuadTreeNode(boundbox)
+root.insert(Point(0.125, 0.156))
+print("=================")
+root.insert(Point(1,1))
+root.print_tree()
