@@ -10,6 +10,12 @@ class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+    
+    def __str__(self):
+        return self.print()
+    
+    def print(self):
+        return f"X: {self.x}\tY: {self.y}"
 
 class Rectangle:
     def __init__(self, x, y, w, h):
@@ -95,7 +101,13 @@ class QuadTreeNode:
             self.add_level()
             for child in self.children:
                 child.insert(point, maxLevel)
-            # self.children = [child for child in self.children if child.isOccupied()]   
+            # self.children = [child for child in self.children if child.isOccupied()]  
+    
+    def insertPCData(self, pcData, maxLevel):
+        if pcData:
+            for point in pcData.getPoints():
+                self.insert(point, maxLevel)
+
 
         
 class QuadTree:
@@ -103,8 +115,11 @@ class QuadTree:
         self.root = QuadTreeNode(boundary)
         self.maxLevel = maxlevel
     
-    def insert(self, point):
-        self.root.insert(point, self.maxLevel)
+    def insert(self, data):
+        if isinstance(data, Point):
+            self.root.insert(data, self.maxLevel)
+        elif isinstance(data, PointCloud):
+            self.root.insertPCData(data, self.maxLevel)
     
     def print_tree(self):
         self.root.print_tree()
@@ -148,6 +163,13 @@ class Tree:
             y = self.center[1] + point.y
             pygame.draw.circle(self.screen, RED, (x, y), 2)
 
+    def drawPCData(self, pcdata):
+        if pcdata:
+            for point in pcdata.getPoints():
+                x = self.center[0] + point.x
+                y = self.center[1] + point.y
+                pygame.draw.circle(self.screen, RED, (x, y), 2)
+
     def clearScreen(self):
         self.screen.fill(WHITE)
     
@@ -163,3 +185,26 @@ class Tree:
             if event.type == pygame.QUIT:
                 self.quit()
                 return True
+
+class PointCloud:
+    points = []
+    pcData = None
+    def __init__(self, pcdata):
+        self.pcData = pcdata
+        self.createPoints()
+    
+    def createPoints(self):
+        if not self.pcData.any():
+            return
+        for pts in self.pcData:
+            self.points.append(Point(pts[0], pts[1]))
+    
+    def getPoints(self):
+        return self.points
+    
+    def __str__(self):
+        string = ""
+        for point in self.points:
+            string += point.print() + "\n"
+            print(point)
+        return string
