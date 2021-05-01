@@ -1,7 +1,6 @@
 # import libraries
 import numpy as np
 import quadtreemap
-import math
 
 np.set_printoptions(precision=4)
 
