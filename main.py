@@ -10,17 +10,17 @@ Point = quadtreemap.Point
 
 boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
-
+app = quadtreemap.Tree(WIDTH, HEIGHT)
 points = []
 for _ in range(500):
     x = random.randrange(WIDTH)
     y = random.randrange(HEIGHT)
     points.append(Point(x, y))
     map.insert(Point(x, y))
+
 map.print_tree()
 
-app = quadtreemap.Tree(map.root, WIDTH, HEIGHT)
-for point in points:
-    app.draw_point(point)
-
+app.draw(map.root)
+for p in points:
+    app.draw_point(p)
 app.loop()

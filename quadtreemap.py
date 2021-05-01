@@ -89,7 +89,8 @@ class QuadTreeNode:
             self.add_level()
             for child in self.children:
                 child.insert(point, maxLevel)
-            # self.children = [child for child in self.children if child.isOccupied()]            
+            # self.children = [child for child in self.children if child.isOccupied()]   
+
         
 class QuadTree:
     def __init__(self, boundary, maxlevel):
@@ -106,9 +107,9 @@ class Tree(tk.Tk):
     pad = (100, 100)
     center = pad[0]/2, pad[1]/2
     r = 2
-    def __init__(self, quadtree, width, height):
+    def __init__(self, width, height):
         tk.Tk.__init__(self)
-        self.quadtree = quadtree
+        # self.quadtree = quadtree
         self.cw, self.ch = width + self.pad[0], height + self.pad[1]
         self.createWindow()
     
@@ -118,7 +119,7 @@ class Tree(tk.Tk):
         self.geometry(geo)
         self.canvas = tk.Canvas(self, width = self.cw, height = self.ch, bg='#ffffff')
         self.canvas.pack()
-        self.draw(self.quadtree)
+        # self.draw(self.quadtree)
     
     def loop(self):
         self.mainloop()
