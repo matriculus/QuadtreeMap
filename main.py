@@ -15,18 +15,17 @@ boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
 tapp = quadtreemap.Tree(WIDTH, HEIGHT)
 
-deg = np.random.uniform(0, 360, 300)
-ang = deg * np.pi / 180
+def generateData():
+    deg = np.random.uniform(0, 360, 300)
+    ang = deg * np.pi / 180
 
-x = WIDTH/2 + 200*np.cos(ang)
-y = HEIGHT/2 + 200*np.sin(ang)
-xy = np.vstack([x, y]).transpose()
+    x = WIDTH/2 + 200*np.cos(ang)
+    y = HEIGHT/2 + 200*np.sin(ang)
+    xy = np.vstack([x, y]).transpose()
 
-pcData = quadtreemap.PointCloud(xy)
-# print(pcData)
-print(pcData)
+    return quadtreemap.PointCloud(xy)
 
-p = Point(x[0], y[0])
+pcData = generateData()
 map.insert(pcData)
 
 done = False
