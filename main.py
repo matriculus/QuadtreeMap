@@ -27,8 +27,8 @@ def generateQuarter(n=300):
     xy = np.random.uniform(0,WIDTH/2, (n,2))
     return quadtreemap.PointCloud(xy)
 
-# pcData = generateData(n=1000)
-pcData = generateQuarter(n=1000)
+pcData = generateCircle(n=1000)
+# pcData = generateQuarter(n=1000)
 map.insert(pcData)
 
 done = False
