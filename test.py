@@ -5,7 +5,7 @@ import math
 
 WIDTH = 640
 HEIGHT = WIDTH
-maxlevel = 5
+maxlevel = 4
 
 Point = quadtreemap.Point
 
@@ -20,8 +20,9 @@ while not done:
     y = HEIGHT/2 + random.randrange(100, 200)*math.sin(ang)
     p = Point(x, y)
     map.insert(p)
+    print(f"Occupied?: {map.isOccupied(Point(x + 50, y + 50))}")
     tapp.draw(map.root)
-    tapp.draw_point(p, False)
+    # tapp.draw_point(p, False)
     tapp.update()
     done = tapp.eventCheck()
 

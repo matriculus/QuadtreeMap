@@ -122,7 +122,19 @@ class QuadTreeNode:
         if len(occupancy) == 4 and all(occupancy):
             self.children = []
             self.occupancy = True
-
+    
+    def isOccupied(self, point):
+        if self.boundary.contains(point):
+            if self.occupancy:
+                return True
+            else:
+                if len(self.children) != 0:
+                    occupied = []
+                    for child in self.children:
+                        occupied.append(child.isOccupied(point))
+                    return any(occupied)
+                else:
+                    return False
 
         
 class QuadTree:
@@ -138,6 +150,9 @@ class QuadTree:
     
     def print_tree(self):
         self.root.print_tree()
+    
+    def isOccupied(self, point):
+        return self.root.isOccupied(point)
 
 class Tree:
     pad = 100, 100
