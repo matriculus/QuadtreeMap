@@ -1,4 +1,5 @@
 import pygame
+import sys
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -36,7 +37,7 @@ class Rectangle:
         return False
 
 class QuadTreeNode:
-    def __init__(self, boundary):
+    def __init__(self, boundary=None):
         self.boundary = boundary
         self.children = []
         self.parent = None
@@ -86,7 +87,7 @@ class QuadTreeNode:
         self.add_level()
         for child in self.children: child.add_until_level(maxLevel)
     
-    def insert(self, point, maxLevel):
+    def insertPoint(self, point, maxLevel):
         if not self.boundary.contains(point):
             return
         
@@ -97,20 +98,26 @@ class QuadTreeNode:
         
         if len(self.children) > 0:
             for child in self.children:
-                child.insert(point, maxLevel)
+                child.insertPoint(point, maxLevel)
         else:
             if not self.occupancy:
                 self.add_level()
                 for child in self.children:
-                    child.insert(point, maxLevel)
-                # self.children = [child for child in self.children if child.isOccupied()]  
+                    child.insertPoint(point, maxLevel)
         self.mergeOccupiedNodes()
     
     def insertPCData(self, pcData, maxLevel):
         if pcData:
             for point in pcData.getPoints():
-                self.insert(point, maxLevel)
+                self.insertPoint(point, maxLevel)
             self.mergeOccupiedNodes()
+    
+    def insert(self, data, maxLevel):
+        if isinstance(data, Point):
+            self.insertPoint(data, maxLevel)
+        elif isinstance(data, PointCloud):
+            self.insertPCData(data, maxLevel)
+
     
     def mergeOccupiedNodes(self):
         occupancy = []
@@ -135,30 +142,42 @@ class QuadTreeNode:
                     return any(occupied)
                 else:
                     return False
+    
+    def getSize(self):
+        if self.children:
+            if self.boundary is None:
+                return sys.getsizeof(self)
+            else:
+                sz = 0
+                for child in self.children:
+                    sz += child.getSize()
+                return sz
+        else:
+            return sys.getsizeof(self.boundary) + sys.getsizeof(self.occupancy)
 
         
 class QuadTree:
-    def __init__(self, boundary, maxlevel):
+    def __init__(self, boundary=None, maxlevel=0):
         self.root = QuadTreeNode(boundary)
         self.maxLevel = maxlevel
     
     def insert(self, data):
-        if isinstance(data, Point):
-            self.root.insert(data, self.maxLevel)
-        elif isinstance(data, PointCloud):
-            self.root.insertPCData(data, self.maxLevel)
+        self.root.insert(data, self.maxLevel)
     
     def print_tree(self):
         self.root.print_tree()
     
     def isOccupied(self, point):
         return self.root.isOccupied(point)
+    
+    def getSize(self):
+        return self.root.getSize()
 
 class Tree:
     pad = 100, 100
     center = pad[0]/2, pad[1]/2
     points = []
-    def __init__(self, width, height):
+    def __init__(self, width=100, height=100):
         self._init__pygame()
         self.screen = pygame.display.set_mode((width + self.pad[0], height + self.pad[1]))
         self.clock = pygame.time.Clock()

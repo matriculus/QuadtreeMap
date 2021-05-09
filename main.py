@@ -28,11 +28,11 @@ def generateQuarter(n=300):
     return quadtreemap.PointCloud(xy)
 
 # pcData = generateCircle(n=1000)
-pcData = generateQuarter(n=1000)
-map.insert(pcData)
 
 done = False
 while not done:
+    pcData = generateQuarter(n=100)
+    map.insert(pcData)
     tapp.draw(map.root)
     tapp.drawPCData(pcData)
     tapp.update()
