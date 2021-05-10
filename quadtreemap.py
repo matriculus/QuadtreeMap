@@ -1,5 +1,6 @@
 import pygame
 import sys
+import copy
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -39,17 +40,13 @@ class Rectangle:
 class QuadTreeNode:
     def __init__(self, boundary=None):
         self.boundary = boundary
-        self.children = []
         self.parent = None
         self.occupancy = False
+        self.children = {}
     
-    def addChild(self, child):
-        assert len(self.children) < 4
-        if len(self.children) < 4:
-            child.parent = self
-            self.children.append(child)
-        else:
-            print(f"No. of children exceeding 4!")
+    def addChild(self, child=None, label="NW"):
+        child.parent = self
+        self.children[label] = child
     
     def get_level(self):
         level = 0
@@ -59,13 +56,16 @@ class QuadTreeNode:
             p = p.parent
         return level
     
+    def containsChildren(self):
+        return any(self.children.values())
+
     def print_tree(self):
         prefix = f"{self.get_level()} "
         spacer = ' ' * self.get_level()*3 + "|____" if self.parent else ""
-        statement = prefix + spacer + f"{self.boundary}" + f"\tOccupied: {self.occupancy}" + f"\t# children: {len(self.children)}"
+        statement = prefix + spacer + f"{self.boundary}" + f"\tOccupied: {self.occupancy}"
         print(statement)
-        if self.children:
-            for child in self.children:
+        if self.containsChildren():
+            for child in self.children.values():
                 child.print_tree()
     
     def add_level(self):
@@ -74,18 +74,18 @@ class QuadTreeNode:
         w = self.boundary.w
         h = self.boundary.h
         # nw point
-        self.addChild(QuadTreeNode(Rectangle(x, y, w/2, h/2)))
+        self.addChild(QuadTreeNode(Rectangle(x, y, w/2, h/2)), "NW")
         # sw point
-        self.addChild(QuadTreeNode(Rectangle(x, y + h/2, w/2, h/2)))
+        self.addChild(QuadTreeNode(Rectangle(x, y + h/2, w/2, h/2)), "SW")
         # se point
-        self.addChild(QuadTreeNode(Rectangle(x + w/2, y + h/2, w/2, h/2)))
+        self.addChild(QuadTreeNode(Rectangle(x + w/2, y + h/2, w/2, h/2)), "SE")
         # ne point
-        self.addChild(QuadTreeNode(Rectangle(x + w/2, y, w/2, h/2)))
+        self.addChild(QuadTreeNode(Rectangle(x + w/2, y, w/2, h/2)), "NE")
     
     def add_until_level(self, maxLevel):
         if maxLevel <= self.get_level() : return
         self.add_level()
-        for child in self.children: child.add_until_level(maxLevel)
+        for child in self.children.values(): child.add_until_level(maxLevel)
     
     def insertPoint(self, point, maxLevel):
         if not self.boundary.contains(point):
@@ -96,21 +96,18 @@ class QuadTreeNode:
                 self.occupancy = True
             return
         
-        if len(self.children) > 0:
-            for child in self.children:
-                child.insertPoint(point, maxLevel)
-        else:
-            if not self.occupancy:
+        if (not self.containsChildren()):
+            if (not self.occupancy):
                 self.add_level()
-                for child in self.children:
-                    child.insertPoint(point, maxLevel)
-        self.mergeOccupiedNodes()
+            else:
+                return
+        for child in self.children.values():
+            child.insertPoint(point, maxLevel)
     
     def insertPCData(self, pcData, maxLevel):
         if pcData:
             for point in pcData.getPoints():
                 self.insertPoint(point, maxLevel)
-            self.mergeOccupiedNodes()
     
     def insert(self, data, maxLevel):
         if isinstance(data, Point):
@@ -118,44 +115,54 @@ class QuadTreeNode:
         elif isinstance(data, PointCloud):
             self.insertPCData(data, maxLevel)
 
-    
     def mergeOccupiedNodes(self):
         occupancy = []
-        if len(self.children) == 0:
+        if not self.containsChildren():
             return
-        for child in self.children:
+        for child in self.children.values():
             child.mergeOccupiedNodes()
             occupancy.append(child.occupancy)
         if len(occupancy) == 4 and all(occupancy):
-            self.children = []
+            self.children = {}
             self.occupancy = True
+    
+    def mergeFreeNodes(self):
+        if not self.containsChildren():
+            return
+        occupancy = []
+        for child in self.children.values():
+            child.mergeFreeNodes()
+            occupancy.append(child.occupancy)
+        if len(occupancy) == 4 and (not any(occupancy)) :
+            self.children = {}
+            self.occupancy = False
     
     def isOccupied(self, point):
         if self.boundary.contains(point):
             if self.occupancy:
                 return True
             else:
-                if len(self.children) != 0:
-                    occupied = []
-                    for child in self.children:
-                        occupied.append(child.isOccupied(point))
-                    return any(occupied)
+                if self.containsChildren():
+                    occupied = False
+                    for child in self.children.values():
+                        occupied = occupied or child.isOccupied(point)
+                    return occupied
                 else:
                     return False
     
     def getSize(self):
-        if self.children:
+        if self.containsChildren():
             if self.boundary is None:
                 return sys.getsizeof(self)
             else:
                 sz = 0
-                for child in self.children:
+                for child in self.children.values():
                     sz += child.getSize()
                 return sz
         else:
             return sys.getsizeof(self.boundary) + sys.getsizeof(self.occupancy)
 
-        
+
 class QuadTree:
     def __init__(self, boundary=None, maxlevel=0):
         self.root = QuadTreeNode(boundary)
@@ -163,15 +170,33 @@ class QuadTree:
     
     def insert(self, data):
         self.root.insert(data, self.maxLevel)
+        self.root.mergeOccupiedNodes()
     
     def print_tree(self):
         self.root.print_tree()
+        print(f"Size: {self.getSize()}")
     
     def isOccupied(self, point):
         return self.root.isOccupied(point)
     
     def getSize(self):
         return self.root.getSize()
+    
+    def invertTree(self, tree):
+        if tree.containsChildren():
+            keys = []
+            for key, child in tree.children.items():
+                if child.occupancy: keys.append(key)
+                else: self.invertTree(child)
+            for key in keys: tree.children.pop(key)
+
+        else: return
+
+    def invert(self):
+        qtree = copy.copy(self)
+        self.invertTree(qtree.root)
+        # qtree.root.mergeFreeNodes()
+        return qtree
 
 class Tree:
     pad = 100, 100
@@ -198,8 +223,8 @@ class Tree:
         if quadtree.occupancy:
             pygame.draw.rect(self.screen, GREEN, (x1, y1, w, h))
         pygame.draw.rect(self.screen, BLACK, (x1, y1, w, h), 1)
-        if quadtree.children:
-            for child in quadtree.children:
+        if quadtree.containsChildren():
+            for child in quadtree.children.values():
                 self.drawTree(child)
     
     def draw_point(self, point, memory):

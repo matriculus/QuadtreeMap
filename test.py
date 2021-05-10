@@ -5,7 +5,7 @@ import sys
 
 WIDTH = 640
 HEIGHT = WIDTH
-maxlevel = 5
+maxlevel = 2
 
 Point = quadtreemap.Point
 
@@ -15,7 +15,7 @@ map = quadtreemap.QuadTree(boundbox, maxlevel)
 tapp = quadtreemap.Tree(WIDTH, HEIGHT)
 done = False
 while not done:
-    deg = np.random.randint(360, size=(50))
+    deg = np.random.randint(360, size=(500))
     ang = (np.pi * deg)/180
     x = WIDTH/2 + np.random.randint(100,200)*np.cos(ang)
     y = HEIGHT/2 + np.random.randint(100,200)*np.sin(ang)
@@ -29,8 +29,18 @@ while not done:
 
 map.print_tree()
 
-print(map.getSize())
-
 xx = 2**maxlevel
 yy = 2**maxlevel
 print(sys.getsizeof(1)*xx*yy)
+
+
+print('='*50)
+qtree = map.invert()
+
+qtree.print_tree()
+tapp = quadtreemap.Tree(WIDTH, HEIGHT)
+done = False
+while not done:
+    tapp.draw(qtree.root)
+    tapp.update()
+    done = tapp.eventCheck()
