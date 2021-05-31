@@ -18,10 +18,15 @@ tapp = quadtreemap.Tree(WIDTH, HEIGHT)
 def generateCircle(n=300):
     deg = np.random.uniform(0, 360, n)
     ang = deg * np.pi / 180
-    r = np.random.uniform(100, 200)
-    x = WIDTH/2 + r*np.cos(ang)
-    y = HEIGHT/2 + r*np.sin(ang)
+    r = np.random.uniform(0, 200)
+    x = 2.5*WIDTH/4 + r*np.cos(ang)
+    y = 2.5*HEIGHT/4 + r*np.sin(ang)
     xy = np.vstack([x, y]).transpose()
+    r1 = np.random.uniform(0, 5)
+    x1 = 0.7*WIDTH/4 + r1*np.cos(ang)
+    y1 = 0.7*HEIGHT/4 + r1*np.sin(ang)
+    xy1 = np.vstack([x1, y1]).transpose()
+    xy = np.vstack([xy, xy1])
     return quadtreemap.PointCloud(xy)
 
 def generateQuarter(n=300):

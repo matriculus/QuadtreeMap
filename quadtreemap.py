@@ -6,6 +6,7 @@ class Recorder:
     def __init__(self):
         self.folder = "Snaps"
         try:
+            os.rmdir(self.folder)
             os.makedirs(self.folder)
         except OSError:
             pass
