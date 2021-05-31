@@ -1,6 +1,22 @@
 import pygame
-import sys
+import sys, os
 import copy
+
+class Recorder:
+    def __init__(self):
+        self.folder = "Snaps"
+        try:
+            os.makedirs(self.folder)
+        except OSError:
+            pass
+        self.num = 0
+    
+    def save(self, screen):
+        filename = f"snap_{self.num:0{5}}.png"
+        fname = os.path.join(self.folder, filename)
+        pygame.image.save(screen, fname)
+        self.num += 1
+
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -238,11 +254,10 @@ class Tree:
             pygame.draw.circle(self.screen, RED, (x, y), 2)
 
     def drawPCData(self, pcdata):
-        if pcdata:
-            for point in pcdata.getPoints():
-                x = self.center[0] + point.x
-                y = self.center[1] + point.y
-                pygame.draw.circle(self.screen, RED, (x, y), 2)
+        for point in pcdata.getPoints():
+            x = self.center[0] + point.x
+            y = self.center[1] + point.y
+            pygame.draw.circle(self.screen, RED, (x, y), 2)
 
     def clearScreen(self):
         self.screen.fill(WHITE)
@@ -261,9 +276,9 @@ class Tree:
                 return True
 
 class PointCloud:
-    points = []
     pcData = None
     def __init__(self, pcdata):
+        self.points = []
         self.pcData = pcdata
         self.createPoints()
     

@@ -9,6 +9,7 @@ HEIGHT = WIDTH
 maxlevel = 5
 
 Point = quadtreemap.Point
+recorder = quadtreemap.Recorder()
 
 boundbox = quadtreemap.Rectangle(0, 0, WIDTH, HEIGHT)
 map = quadtreemap.QuadTree(boundbox, maxlevel)
@@ -24,18 +25,20 @@ def generateCircle(n=300):
     return quadtreemap.PointCloud(xy)
 
 def generateQuarter(n=300):
-    xy = np.random.uniform(0,WIDTH/2, (n,2))
+    xy = np.random.uniform(0,WIDTH, (n,2))
     return quadtreemap.PointCloud(xy)
 
 # pcData = generateCircle(n=1000)
 
 done = False
 while not done:
-    pcData = generateQuarter(n=100)
+    pcData = generateCircle(n=10)
     map.insert(pcData)
     tapp.draw(map.root)
     tapp.drawPCData(pcData)
     tapp.update()
+    recorder.save(tapp.screen)
     done = tapp.eventCheck()
+    del pcData
 
 map.print_tree()
