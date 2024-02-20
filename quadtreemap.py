@@ -1,23 +1,7 @@
 import pygame
 import sys, os
+import shutil
 import copy
-
-class Recorder:
-    def __init__(self):
-        self.folder = "Snaps"
-        try:
-            os.rmdir(self.folder)
-            os.makedirs(self.folder)
-        except OSError:
-            pass
-        self.num = 0
-    
-    def save(self, screen):
-        filename = f"snap_{self.num:0{5}}.png"
-        fname = os.path.join(self.folder, filename)
-        pygame.image.save(screen, fname)
-        self.num += 1
-
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -221,6 +205,8 @@ class Tree:
     points = []
     def __init__(self, width=100, height=100):
         self._init__pygame()
+        self.width = width
+        self.height = height
         self.screen = pygame.display.set_mode((width + self.pad[0], height + self.pad[1]))
         self.clock = pygame.time.Clock()
     
@@ -263,8 +249,11 @@ class Tree:
     def clearScreen(self):
         self.screen.fill(WHITE)
     
-    def update(self):
+    def update(self, recorder=None):
         pygame.display.flip()
+        if recorder:
+            array2d = pygame.image.tostring(self.screen, "RGBA")
+            recorder.capture(array2d, (self.width, self.height))
         self.clock.tick(60)
     
     def quit(self):
